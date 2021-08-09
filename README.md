@@ -123,4 +123,60 @@ ORDER BY prod_price DESC, prod_name;
 - 对第一个条件倒序排序，对第二个条件正序排列
 ## 字母大小写的区分问题
 - A和a谁排在前面，取决于数据库软件的设置
+# 过滤结果
+```SQL
+SELECT prod_name, prod_price
+FROM Products
+WHERE prod_price = 3.49;
+```
+- 筛选了price等于3.49的物品名称
+```SQL
+SELECT prod_name, prod_price
+FROM Products
+WHERE prod_price < 10;
+```
+- 筛选了价格小于10的物品
+---
+- WHERE语句应该排在order by的前面
+- 适用于WHERE语句的运算符 
+| 操作符 |说 明|
+|---|---|
+|= |等于|
+|< > |不等于|
+|!= |不等于|
+|< |小于|
+|<= |小于等于|
+|!| 不小于|
+|> |大于|
+|>= |大于等于|
+|!>| 不大于|
+|BETWEEN |在指定的两个值之间|
+|IS NULL |为NULL值|
+- 表中有些符号冗余，如< >与!=相同，!<相当于>=
+## SQL过滤与应用层过滤
+> 数据也可以在应用层过滤。为此，SQL的SELECT语句为客户端应用检索出超过实际所需的数据，然后客户端代码对返回数据进行循环，提取出需要的行。通常，这种做法极其不妥。优化数据库后可以更快速有效地对数据进行过滤。而让客户端应用（或开发语言）处理数据库的工作将会极大地影响应用的性能，并且使所创建的应用完全不具备可伸缩性。此外，如果在客户端过滤数据，服务器不得不通过网络发送多余的数据，这将导致网络带宽的浪费。
+## 更多过滤列子
+```SQl
+SELECT vend_id, prod_name
+FROM Products
+WHERE vend_id <> 'DLL01';
+```
+- 筛选出不是戴尔公司的记录
+- 单引号`'`用来表示字符串
+- 其中<> 视情况可以用!=代替
+```SQL
+SELECT prod_name, prod_price
+FROM Products
+WHERE prod_price BETWEEN 5 AND 10;
+```
+- 筛选出区间内的记录
+- 包含两端数值
+```SQL
+SELECT cust_name
+FROM CUSTOMERS
+WHERE cust_email IS NULL;
+```
+- 筛选出有空值的记录
+- 没有不返回结果
+# 高级数据过滤
 
