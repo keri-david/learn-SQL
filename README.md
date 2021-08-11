@@ -21,6 +21,13 @@
 - [高级数据过滤](#%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E8%BF%87%E6%BB%A4)
     - [操作符](#%E6%93%8D%E4%BD%9C%E7%AC%A6)
     - [使用通配符](#%E4%BD%BF%E7%94%A8%E9%80%9A%E9%85%8D%E7%AC%A6)
+        - [like操作符](#like%E6%93%8D%E4%BD%9C%E7%AC%A6)
+        - [%通配符](#%25%E9%80%9A%E9%85%8D%E7%AC%A6)
+        - [_通配符](#_%E9%80%9A%E9%85%8D%E7%AC%A6)
+        - [[]通配符](#%E9%80%9A%E9%85%8D%E7%AC%A6)
+        - [^ 通配符](#%5E-%E9%80%9A%E9%85%8D%E7%AC%A6)
+        - [技巧](#%E6%8A%80%E5%B7%A7)
+- [创建](#%E5%88%9B%E5%BB%BA)
 
 <!-- /TOC -->
 
@@ -273,6 +280,70 @@ FROM Products
 WHERE vend_id <> 'DLL01'
 ORDER BY prod_name;
 ```
-- 对于复杂语句来说，not有优势
+- 对于复杂语句来说，not对比其他语句有优势
 
 ## 使用通配符
+### like操作符
+- 用来匹配值的一部分的特殊字符。
+- 只能用于文本字段搜索
+
+>- 操作符何时不是操作符？答案是，它作为谓词时。从技术上说，LIKE是谓词而不是操作符。虽然最终的结果是相同的，但应该对此术语有所了解。
+### %通配符
+```SQL
+SELECT prod_id, prod_name 
+FROM Products 
+WHERE prod_name LIKE 'Fish%';
+```
+- 匹配以Fish开头的任意文本
+- 匹配搜索是区分大小写的
+> 如果使用的是Microsoft Access，需要使用*而不是%
+```SQL
+SELECT prod_id, prod_name 
+FROM Products 
+WHERE prod_name LIKE '%bean bag%';
+```
+- 搜索包含bean bag的文本字段记录
+```SQL
+SELECT prod_name
+FROM Products
+WHERE prod_name LIKE 'F%y%';
+```
+- 匹配以F开头，y结尾的文本记录
+- 后面的`%`，目地是为了防止后面有空格，导致的不能匹配
+### _通配符
+- 用途和`%`一样，但是`_`之匹配一个字符，而`%`则可以匹配多任意字符，0个到无限个
+- DB2不支持`_`
+- 如果使用的是Microsoft Access，需要使用?而不是_。
+```SQL
+SELECT prod_id, prod_name
+FROM Products
+WHERE prod_name LIKE '__ inch teddy bear';
+```
+```SQL
+SELECT prod_id, prod_nameFROM ProductsWHERE prod_name LIKE '% inch teddy bear';
+```
+> 下面使用`%`会多一个结果`BR01 8 inch teddy bear`，因为%可以匹配任意多字符
+### []通配符
+```SQL
+SELECT cust_contact
+FROM Customers
+WHERE cust_contact LIKE '[JM]%'
+ORDER BY cust_contact;
+```
+- 匹配以J、M开头的联系人
+- 使用[]必须给定关键字位置
+### ^ 通配符
+```SQL
+SELECT cust_contact
+FROM Customers
+WHERE cust_contact LIKE '[^JM]%'
+ORDER BY cust_contact;
+```
+- 匹配开头不是J、M的联系人
+- 如果使用的是Microsoft Access，需要用!而不是^来否定一个集合，因此，使用的是[!JM]而不是[^JM]。
+- 也可以用not语句来实现
+### 技巧
+> 1. 不要过度使用通配符。如果其他操作符能达到相同的目的，应该使用其他操作符。
+>2. 在确实需要使用通配符时，也尽量不要把它们用在搜索模式的开始处。把通配符置于开始处，搜索起来是最慢的。
+>3. 仔细注意通配符的位置。如果放错地方，可能不会返回想要的数据。
+# 创建计算字段
