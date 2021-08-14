@@ -27,7 +27,18 @@
         - [[]通配符](#%E9%80%9A%E9%85%8D%E7%AC%A6)
         - [^ 通配符](#%5E-%E9%80%9A%E9%85%8D%E7%AC%A6)
         - [技巧](#%E6%8A%80%E5%B7%A7)
-- [创建](#%E5%88%9B%E5%BB%BA)
+- [计算字段](#%E8%AE%A1%E7%AE%97%E5%AD%97%E6%AE%B5)
+    - [拼接字段](#%E6%8B%BC%E6%8E%A5%E5%AD%97%E6%AE%B5)
+    - [使用别名](#%E4%BD%BF%E7%94%A8%E5%88%AB%E5%90%8D)
+    - [算数运算](#%E7%AE%97%E6%95%B0%E8%BF%90%E7%AE%97)
+- [函数](#%E5%87%BD%E6%95%B0)
+    - [认识函数](#%E8%AE%A4%E8%AF%86%E5%87%BD%E6%95%B0)
+    - [使用函数](#%E4%BD%BF%E7%94%A8%E5%87%BD%E6%95%B0)
+        - [文本处理函数](#%E6%96%87%E6%9C%AC%E5%A4%84%E7%90%86%E5%87%BD%E6%95%B0)
+        - [日期和时间处理函数](#%E6%97%A5%E6%9C%9F%E5%92%8C%E6%97%B6%E9%97%B4%E5%A4%84%E7%90%86%E5%87%BD%E6%95%B0)
+        - [数值处理函数](#%E6%95%B0%E5%80%BC%E5%A4%84%E7%90%86%E5%87%BD%E6%95%B0)
+- [汇总数据](#%E6%B1%87%E6%80%BB%E6%95%B0%E6%8D%AE)
+    - [聚集函数](#%E8%81%9A%E9%9B%86%E5%87%BD%E6%95%B0)
 
 <!-- /TOC -->
 
@@ -346,4 +357,151 @@ ORDER BY cust_contact;
 > 1. 不要过度使用通配符。如果其他操作符能达到相同的目的，应该使用其他操作符。
 >2. 在确实需要使用通配符时，也尽量不要把它们用在搜索模式的开始处。把通配符置于开始处，搜索起来是最慢的。
 >3. 仔细注意通配符的位置。如果放错地方，可能不会返回想要的数据。
-# 创建计算字段
+# 计算字段
+- 有时数据并不是应用层需要的，这时就要进行转换
+- 虽然有些数据转换在应用层也可以完成，但一般来讲数据库的转换更加高效
+- 字段就是列，就如行就是记录一样
+- 从应用层来讲，计算字段和普通的数据字段开起来没有区别
+## 拼接字段
+```SQL
+SELECT vend_name + ' (' + vend_country + ')'
+FROM Vendors
+ORDER BY vend_name;
+```
+```SQL
+SELECT vend_name || ' (' || vend_country || ')'
+FROM Vendors
+ORDER BY vend_name;
+```
+- `+`和`||`等价
+- Access和SQL Server使用+号。DB2、Oracle、PostgreSQL、SQLite和Open Office Base使用||
+- 在MySQL和MariaDB中，必须使用特殊的函数
+>1. 存储在vend_name列中的名字；
+>2. 包含一个空格和一个左圆括号的字符串；
+>3. 存储在vend_country列中的国家；
+>4. 包含一个右圆括号的字符串。
+- 之间的结果输出，有较多的空格输出，需要用函数RTRIM()来去除。
+```SQL
+SELECT RTRIM(vend_name) + ' (' + RTRIM(vend_country) + ')'
+FROM Vendors
+ORDER BY vend_name;
+```
+- 大多数DBMS都支持RTRIM()（正如刚才所见，它去掉字符串右边的空格）、LTRIM()（去掉字符串左边的空格）以及TRIM()（去掉字符串左右两边的空格）。
+## 使用别名
+```SQL
+SELECT RTRIM(vend_name) + ' (' + RTRIM(vend_country) + ')' 
+ AS vend_title
+FROM Vendors
+ORDER BY vend_name;
+```
+- MySQL和Mariadb
+```SQL
+SELECT Concat(vend_name, ' (', vend_country, ')')
+ AS vend_title
+FROM Vendors
+ORDER BY vend_name;
+```
+- 别名既可以是一个单词也可以是一个字符串。如果是后者，字符串应该括在引号中。虽然这种做法是合法的，但不建议这么去做。多单词的名字可读性高，不过会给客户端应用带来各种问题。因此，别名最常见的使用是将多个单词的列名重命名为一个单词的名字。
+- 也叫导出列
+## 算数运算
+```SQL
+SELECT prod_id,
+ quantity,
+ item_price,
+ quantity*item_price AS expanded_price
+FROM OrderItems
+WHERE order_num = 20008;
+```
+- 有加减乘除四个运算符
+- 可以用括号调整或区分优先级
+- 虽然SELECT通常用于从表中检索数据，但是省略了FROM子句后就是简单地访问和处理表达式，例如SELECT 3 * 2;将返回6，SELECT Trim(' abc ');将返回abc，SELECT Now();使用Now()函数返回当前日期和时间。。
+# 函数
+## 认识函数
+- DBMS函数的差异
+
+|函数|语法|
+|---|---|
+|提取字符串的组成部分|Access使用MID()；DB2、Oracle、PostgreSQL和SQLite使用SUBSTR()；MySQL和SQL Server使用SUBSTRING()|
+|数据类型转换|Access和Oracle使用多个函数，每种类型的转换有一个函数；DB2和PostgreSQL使用CAST()；MariaDB、MySQL和SQL Server使用CONVERT()|
+|取当前日期|Access使用NOW()；DB2和PostgreSQL使用CURRENT_DATE；MariaDB和MySQL使用CURDATE()；Oracle使用SYSDATE；SQL Server使用GETDATE()；SQLite使用DATE()|
+> 为了代码的可移植，许多SQL程序员不赞成使用特定于实现的功能。虽然这样做很有好处，但有的时候并不利于应用程序的性能。如果不使用这些函数，编写某些应用程序代码会很艰难。必须利用其他方法来实现DBMS可以非常有效完成的工作。
+## 使用函数
+- 分为以下几个函数类型
+1. 用于处理文本字符串（如删除或填充值，转换值为大写或小写）的文本函数。 
+2. 用于在数值数据上进行算术操作（如返回绝对值，进行代数运算）的数值函数。
+3. 用于处理日期和时间值并从这些值中提取特定成分（如返回两个日期之差，检查日期有效性）的日期和时间函数。
+4. 返回DBMS正使用的特殊信息（如返回用户登录信息）的系统函数
+### 文本处理函数
+- 常用的文本处理函数
+
+|函数|说明|
+|---|---|
+|LEFT()（或使用子字符串函数）| 返回字符串左边的字符|
+|LENGTH()（也使用DATALENGTH()或LEN()） |返回字符串的长度|
+|LOWER()（Access使用LCASE()） |将字符串转换为小写|
+|LTRIM() |去掉字符串左边的空格|
+|RIGHT()（或使用子字符串函数） |返回字符串右边的字符|
+|RTRIM() |去掉字符串右边的空格|
+|SOUNDEX() |返回字符串的SOUNDEX值|
+|UPPER()（Access使用UCASE()）| 将字符串转换为大写|
+- 关于Soundex（）的说明
+> SOUNDEX是一个将任何文本串转换为描述其语音表示的字母数字模式的算法。SOUNDEX考虑了类似的发音字符和音节，使得能对字符串进行发音比较而不是字母比较。虽然SOUNDEX不是SQL概念，但多数DBMS都提供对SOUNDEX的支持。
+```SQL
+SELECT cust_name, cust_contact
+FROM Customers
+WHERE SOUNDEX(cust_contact) = SOUNDEX('Michael Green');
+```
+输出结果：
+```SQL
+cust_name     cust_contact
+-------------------------- 
+Kids Place     Michelle Green
+```
+- 很明显就是靠发音检索
+### 日期和时间处理函数
+- 一个列子，返回同样的结果，不同的DBMS
+```SQL
+# SQL SERVER、Sybase
+SELECT order_num
+FROM Orders
+WHERE DATEPART(yy, order_date) = 2012;
+# Access
+SELECT order_num
+FROM Orders
+WHERE DATEPART('yyyy', order_date) = 2012;
+# postgreSQL
+SELECT order_num
+FROM Orders
+WHERE DATE_PART('year', order_date) = 2012;
+# oracle(1)
+SELECT order_num
+FROM Orders
+WHERE to_number(to_char(order_date, 'YYYY')) = 2012;
+# oracle(2)
+SELECT order_num
+FROM Orders
+WHERE order_date BETWEEN to_date('01-01-2012')
+AND to_date('12-31-2012');
+# MySQL和MariaDB
+SELECT order_num
+FROM Orders
+WHERE YEAR(order_date) = 2012;
+# SQLite
+SELECT order_num
+FROM Orders
+WHERE strftime('%Y', order_date) = 2012;
+```
+### 数值处理函数
+- 较为统一
+
+|函数|解释|
+|---|---|
+|ABS() |返回一个数的绝对值|
+|COS() |返回一个角度的余弦|
+|EXP() |返回一个数的指数值|
+|PI() |返回圆周率|
+|SIN() |返回一个角度的正弦|
+|SQRT() |返回一个数的平方根|
+|TAN() |返回一个角度的正切|
+# 汇总数据
+## 聚集函数
