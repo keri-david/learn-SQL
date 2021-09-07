@@ -39,6 +39,10 @@
         - [数值处理函数](#%E6%95%B0%E5%80%BC%E5%A4%84%E7%90%86%E5%87%BD%E6%95%B0)
 - [汇总数据](#%E6%B1%87%E6%80%BB%E6%95%B0%E6%8D%AE)
     - [聚集函数](#%E8%81%9A%E9%9B%86%E5%87%BD%E6%95%B0)
+        - [AVG（）](#avg)
+        - [COUNT（）](#count)
+        - [MAX和MIN](#max%E5%92%8Cmin)
+    - [](#)
 
 <!-- /TOC -->
 
@@ -505,3 +509,27 @@ WHERE strftime('%Y', order_date) = 2012;
 |TAN() |返回一个角度的正切|
 # 汇总数据
 ## 聚集函数
+
+|函数|说明|
+|---|---|
+|AVG() |返回某列的平均值|
+|COUNT() |返回某列的行数|
+|MAX() |返回某列的最大值|
+|MIN() |返回某列的最小值|
+|SUM() |返回某列值之和|
+### AVG（）
+```SQL
+SELECT AVG(prod_price) AS avg_price
+FROM Products
+WHERE vend_id = 'DLL01';
+```
+- 列出dell产品的平均值
+- AVG（）作用于单列，忽略值为None的行
+### COUNT（）
+```SQL
+SELECT COUNT(*) AS num_cust
+FROM Customers;
+```
+### MAX和MIN
+- 如果用于文本类数据，则返回最后一行和第一行
+## 聚集不同类型的值
